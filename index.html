@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Frame Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8f2ff;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .upload-size {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .frame-selection {
+            margin-bottom: 30px;
+        }
+
+        .frame-selection h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .frame-options {
+            display: flex;
+            justify-content: space-around;
+            gap: 15px;
+        }
+
+        .frame-option {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #ddd;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .frame-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .frame-option:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .frame-option.selected {
+            border-color: #667eea;
+            background: #e8f2ff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .preview-area {
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .preview-area.show {
+            display: block;
+        }
+
+        .preview-container {
+            position: relative;
+            display: inline-block;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        #previewCanvas {
+            display: block;
+            border-radius: 50%;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .success-message {
+            color: #27ae60;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .frame-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .frame-option {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Frame Your Pic</h1>
+        <!--p class="subtitle">Add a beautiful frame to your Instagram profile picture</p -->
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Click to upload or drag & drop</div>
+            <div class="upload-size">Max size: 0.5MB</div>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="frame-selection">
+            <h3>Choose Your Frame</h3>
+            <div class="frame-options">
+                <div class="frame-option" data-frame="f1.png">
+                    <img src="f1.png" alt="Frame 1">
+                </div>
+                <div class="frame-option" data-frame="f2.png">
+                    <img src="f2.png" alt="Frame 2">
+                </div>
+                <div class="frame-option" data-frame="f3.png">
+                    <img src="f3.png" alt="Frame 3">
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-area" id="previewArea">
+            <div class="preview-container">
+                <canvas id="previewCanvas" width="300" height="300"></canvas>
+            </div>
+        </div>
+
+        <button class="download-btn" id="downloadBtn" disabled>
+            💾 Download Your Framed Photo
+        </button>
+
+        <div id="messageArea"></div>
+    </div>
+
+    <script>
+        class InstagramFrameGenerator {
+            constructor() {
+                this.selectedFile = null;
+                this.selectedFrame = null;
+                this.canvas = document.getElementById('previewCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.frameImages = {};
+                this.frameDataURLs = {};
+                this.frameElements = {};
+                
+                this.loadFrameImages();
+                this.initializeEventListeners();
+            }
+
+            loadFrameImages() {
+                const frameFiles = ['f1.png', 'f2.png', 'f3.png'];
+                let loadedCount = 0;
+                
+                frameFiles.forEach(frameFile => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.frameImages[frameFile] = img;
+                        loadedCount++;
+                        console.log(`Loaded frame: ${frameFile}`);
+                        if (loadedCount === frameFiles.length) {
+                            console.log('All frame images loaded successfully');
+                        }
+                    };
+                    img.onerror = () => {
+                        console.error(`Failed to load frame image: ${frameFile}`);
+                    };
+                    img.src = frameFile;
+                });
+
+                // Create data URLs from the existing frame image elements in the HTML
+                this.createFrameDataURLsFromElements();
+            }
+
+            createFrameDataURLsFromElements() {
+                // Store references to frame elements for later use
+                const frameElements = document.querySelectorAll('.frame-option img');
+                
+                frameElements.forEach(imgElement => {
+                    const frameFile = imgElement.src.split('/').pop(); // Extract filename
+                    // Store the element reference instead of trying to create data URL
+                    this.frameElements = this.frameElements || {};
+                    this.frameElements[frameFile] = imgElement;
+                    console.log(`Stored frame element reference for: ${frameFile}`);
+                });
+            }
+
+            blobToDataURL(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
+
+            initializeEventListeners() {
+                const uploadArea = document.getElementById('uploadArea');
+                const fileInput = document.getElementById('fileInput');
+                const frameOptions = document.querySelectorAll('.frame-option');
+                const downloadBtn = document.getElementById('downloadBtn');
+
+                // File upload events
+                uploadArea.addEventListener('click', () => fileInput.click());
+                uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
+                uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                uploadArea.addEventListener('drop', this.handleDrop.bind(this));
+                fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+
+                // Frame selection events
+                frameOptions.forEach(option => {
+                    option.addEventListener('click', () => this.selectFrame(option));
+                });
+
+                // Download event
+                downloadBtn.addEventListener('click', this.downloadImage.bind(this));
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                e.currentTarget.classList.add('dragover');
+            }
+
+            handleDragLeave(e) {
+                e.preventDefault();
+                e.currentTarget.classList.remove('dragover');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                e.currentTarget.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    this.processFile(files[0]);
+                }
+            }
+
+            handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.processFile(file);
+                }
+            }
+
+            processFile(file) {
+                // Validate file size (0.5MB = 500KB)
+                if (file.size > 500 * 1024) {
+                    this.showMessage('File size must be less than 0.5MB', 'error');
+                    return;
+                }
+
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    this.showMessage('Please select a valid image file', 'error');
+                    return;
+                }
+
+                this.selectedFile = file;
+                this.showMessage('Image uploaded successfully!', 'success');
+                this.loadImage();
+            }
+
+            loadImage() {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.drawImage(img);
+                        this.updateDownloadButton();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(this.selectedFile);
+            }
+
+            drawImage(img) {
+                const size = 300;
+                this.canvas.width = size;
+                this.canvas.height = size;
+
+                // Clear canvas
+                this.ctx.clearRect(0, 0, size, size);
+
+                // Create circular clipping path for the user image
+                this.ctx.save();
+                this.ctx.beginPath();
+                this.ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+                this.ctx.clip();
+
+                // Calculate dimensions to maintain aspect ratio and fill circle
+                const imgSize = Math.max(img.width, img.height);
+                const scale = size / imgSize;
+                const scaledWidth = img.width * scale;
+                const scaledHeight = img.height * scale;
+                const x = (size - scaledWidth) / 2;
+                const y = (size - scaledHeight) / 2;
+
+                // Draw the user's image
+                this.ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+                this.ctx.restore();
+
+                // Draw frame on top if selected
+                if (this.selectedFrame) {
+                    this.drawFrame();
+                }
+
+                // Show preview
+                document.getElementById('previewArea').classList.add('show');
+            }
+
+            selectFrame(frameElement) {
+                // Remove previous selection
+                document.querySelectorAll('.frame-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+
+                // Add selection to clicked frame
+                frameElement.classList.add('selected');
+                this.selectedFrame = frameElement.dataset.frame;
+
+                // Store reference to the frame image element for drawing
+                this.selectedFrameElement = frameElement.querySelector('img');
+
+                // Redraw image with frame
+                if (this.selectedFile) {
+                    this.loadImage();
+                }
+
+                this.updateDownloadButton();
+            }
+
+            drawFrame() {
+                if (!this.selectedFrame || !this.selectedFrameElement) {
+                    console.log('No frame selected or frame element not available');
+                    return;
+                }
+                
+                const size = 300;
+                console.log(`Drawing frame: ${this.selectedFrame}`);
+                
+                // Use the frame image element directly (it's already loaded in the UI)
+                try {
+                    this.ctx.drawImage(this.selectedFrameElement, 0, 0, size, size);
+                    console.log('Frame drawn successfully');
+                } catch (error) {
+                    console.error('Error drawing frame:', error);
+                    
+                    // Fallback: try to use preloaded image
+                    if (this.frameImages[this.selectedFrame]) {
+                        const frameImg = this.frameImages[this.selectedFrame];
+                        console.log('Using preloaded frame image as fallback');
+                        this.ctx.drawImage(frameImg, 0, 0, size, size);
+                        return;
+                    }
+                    
+                    // Final fallback: load frame image dynamically
+                    console.log('Loading frame dynamically as final fallback');
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log('Frame loaded dynamically, drawing...');
+                        this.ctx.drawImage(img, 0, 0, size, size);
+                    };
+                    img.onerror = () => {
+                        console.error(`Failed to load frame image: ${this.selectedFrame}`);
+                    };
+                    img.src = this.selectedFrame;
+                }
+            }
+
+            updateDownloadButton() {
+                const downloadBtn = document.getElementById('downloadBtn');
+                downloadBtn.disabled = !(this.selectedFile && this.selectedFrame);
+            }
+
+            async downloadImage() {
+                if (!this.selectedFile || !this.selectedFrame) {
+                    this.showMessage('Please upload an image and select a frame', 'error');
+                    return;
+                }
+
+                try {
+                    // Try to use the preview canvas directly first
+                    try {
+                        const link = document.createElement('a');
+                        const frameName = this.selectedFrame.replace('.png', '');
+                        link.download = `framed-profile-pic-${frameName}.png`;
+                        link.href = this.canvas.toDataURL('image/png');
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        this.showMessage('Image downloaded successfully!', 'success');
+                        return;
+                    } catch (previewError) {
+                        console.log('Preview canvas is tainted, creating clean canvas:', previewError);
+                    }
+
+                    // Fallback: Create a new canvas for download
+                    const downloadCanvas = document.createElement('canvas');
+                    const downloadCtx = downloadCanvas.getContext('2d');
+                    const size = 300;
+                    downloadCanvas.width = size;
+                    downloadCanvas.height = size;
+
+                    // Try to use PNG frame from existing HTML element
+                    let frameDrawn = false;
+                    if (this.frameElements[this.selectedFrame]) {
+                        console.log(`Attempting to use existing frame element for: ${this.selectedFrame}`);
+                        try {
+                            downloadCtx.drawImage(this.frameElements[this.selectedFrame], 0, 0, size, size);
+                            frameDrawn = true;
+                            console.log('Drew PNG frame from existing element successfully');
+                        } catch (error) {
+                            console.log('Could not draw existing frame element:', error);
+                        }
+                    }
+                    
+                    // If existing element failed, try loading fresh image without crossOrigin
+                    if (!frameDrawn && this.selectedFrame) {
+                        console.log(`Attempting to load fresh frame: ${this.selectedFrame}`);
+                        try {
+                            const frameImg = new Image();
+                            
+                            await new Promise((resolve, reject) => {
+                                frameImg.onload = () => {
+                                    try {
+                                        console.log('Fresh frame image loaded, attempting to draw...');
+                                        downloadCtx.drawImage(frameImg, 0, 0, size, size);
+                                        frameDrawn = true;
+                                        console.log('Drew fresh PNG frame successfully');
+                                        resolve();
+                                    } catch (drawError) {
+                                        console.log('Could not draw fresh frame image:', drawError);
+                                        reject(drawError);
+                                    }
+                                };
+                                frameImg.onerror = (error) => {
+                                    console.log('Could not load fresh frame image:', error);
+                                    reject(error);
+                                };
+                                frameImg.src = this.selectedFrame;
+                            });
+                        } catch (error) {
+                            console.log('Could not use fresh PNG frame:', error);
+                        }
+                    }
+                    
+                    console.log(`Frame drawn status: ${frameDrawn}`);
+                    if (!frameDrawn) {
+                        console.error('PNG frame could not be applied to download');
+                        this.showMessage('Error: Could not apply PNG frame to download. This is likely due to browser security restrictions when opening files directly. Please serve the HTML file through a web server (e.g., use "python -m http.server" or "npx serve") and try again.', 'error');
+                        return;
+                    }
+
+                    // Load user image as data URL
+                    const userImageDataUrl = await this.fileToDataURL(this.selectedFile);
+                    const userImg = new Image();
+                    
+                    await new Promise((resolve, reject) => {
+                        userImg.onload = resolve;
+                        userImg.onerror = reject;
+                        userImg.src = userImageDataUrl;
+                    });
+
+                    // Create circular clipping path for user image
+                    downloadCtx.save();
+                    downloadCtx.beginPath();
+                    downloadCtx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+                    downloadCtx.clip();
+
+                    // Calculate dimensions to maintain aspect ratio and fill circle
+                    const imgSize = Math.max(userImg.width, userImg.height);
+                    const scale = size / imgSize;
+                    const scaledWidth = userImg.width * scale;
+                    const scaledHeight = userImg.height * scale;
+                    const x = (size - scaledWidth) / 2;
+                    const y = (size - scaledHeight) / 2;
+
+                    // Draw the user's image on top of frame
+                    downloadCtx.drawImage(userImg, x, y, scaledWidth, scaledHeight);
+                    downloadCtx.restore();
+
+                    // Create download link
+                    const link = document.createElement('a');
+                    const frameName = this.selectedFrame.replace('.png', '');
+                    link.download = `framed-profile-pic-${frameName}.png`;
+                    link.href = downloadCanvas.toDataURL('image/png');
+                    
+                    // Add link to DOM temporarily for download
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    this.showMessage('Image downloaded successfully!', 'success');
+                } catch (error) {
+                    console.error('Download error:', error);
+                    this.showMessage('Download failed. Please try again.', 'error');
+                }
+            }
+
+            drawSimpleFrame(ctx, size) {
+                const centerX = size / 2;
+                const centerY = size / 2;
+                const radius = size / 2 - 5; // Draw closer to the edge
+
+                // Choose frame style based on selection
+                let frameStyle = {};
+                switch (this.selectedFrame) {
+                    case 'f1.png':
+                        frameStyle = {
+                            strokeStyle: '#ff6b6b',
+                            lineWidth: 15,
+                            shadowColor: 'rgba(255, 107, 107, 0.8)',
+                            shadowBlur: 20
+                        };
+                        break;
+                    case 'f2.png':
+                        frameStyle = {
+                            strokeStyle: '#ffd93d',
+                            lineWidth: 15,
+                            shadowColor: 'rgba(255, 217, 61, 0.8)',
+                            shadowBlur: 20
+                        };
+                        break;
+                    case 'f3.png':
+                        frameStyle = {
+                            strokeStyle: '#a8e6cf',
+                            lineWidth: 12,
+                            shadowColor: 'rgba(168, 230, 207, 0.8)',
+                            shadowBlur: 15
+                        };
+                        break;
+                    default:
+                        frameStyle = {
+                            strokeStyle: '#667eea',
+                            lineWidth: 15,
+                            shadowColor: 'rgba(102, 126, 234, 0.8)',
+                            shadowBlur: 20
+                        };
+                }
+
+                console.log(`Drawing simple frame with style:`, frameStyle);
+
+                ctx.save();
+                ctx.strokeStyle = frameStyle.strokeStyle;
+                ctx.lineWidth = frameStyle.lineWidth;
+                ctx.shadowColor = frameStyle.shadowColor;
+                ctx.shadowBlur = frameStyle.shadowBlur;
+                
+                // Draw a circular frame around the edge
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.restore();
+                console.log('Simple frame drawn');
+            }
+
+            fileToDataURL(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            showMessage(message, type) {
+                const messageArea = document.getElementById('messageArea');
+                messageArea.innerHTML = `<div class="${type}-message">${message}</div>`;
+                
+                // Clear message after 3 seconds
+                setTimeout(() => {
+                    messageArea.innerHTML = '';
+                }, 3000);
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new InstagramFrameGenerator();
+        });
+    </script>
+</body>
+</html>
+
