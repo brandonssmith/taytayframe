@@ -217,7 +217,7 @@
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📁</div>
             <div class="upload-text">Click to upload or drag & drop</div>
-            <div class="upload-size">Max size: 0.5MB</div>
+            <div class="upload-size">Max size: 5MB</div>
             <input type="file" id="fileInput" accept="image/*">
         </div>
 
@@ -225,13 +225,13 @@
             <h3>Choose Your Frame</h3>
             <div class="frame-options">
                 <div class="frame-option" data-frame="f1.png">
-                    <img src="f1.png" alt="Frame 1">
+                    <img src="./f1.png" alt="Frame 1">
                 </div>
                 <div class="frame-option" data-frame="f2.png">
-                    <img src="f2.png" alt="Frame 2">
+                    <img src="./f2.png" alt="Frame 2">
                 </div>
                 <div class="frame-option" data-frame="f3.png">
-                    <img src="f3.png" alt="Frame 3">
+                    <img src="./f3.png" alt="Frame 3">
                 </div>
             </div>
         </div>
@@ -279,9 +279,12 @@
                         }
                     };
                     img.onerror = () => {
-                        console.error(`Failed to load frame image: ${frameFile}`);
+                        console.error(`Failed to load frame image: ${frameFile} from path: ${img.src}`);
+                        console.error('Make sure the PNG files are in the same directory as the HTML file');
                     };
-                    img.src = frameFile;
+                    // Use explicit relative path from document root
+                    img.src = './' + frameFile;
+                    console.log(`Attempting to load frame from: ${img.src}`);
                 });
 
                 // Create data URLs from the existing frame image elements in the HTML
@@ -359,9 +362,9 @@
             }
 
             processFile(file) {
-                // Validate file size (0.5MB = 500KB)
-                if (file.size > 500 * 1024) {
-                    this.showMessage('File size must be less than 0.5MB', 'error');
+                // Validate file size (5MB = 5 * 1024 * 1024 bytes)
+                if (file.size > 5 * 1024 * 1024) {
+                    this.showMessage('File size must be less than 5MB', 'error');
                     return;
                 }
 
@@ -555,7 +558,7 @@
                                     console.log('Could not load fresh frame image:', error);
                                     reject(error);
                                 };
-                                frameImg.src = this.selectedFrame;
+                                frameImg.src = './' + this.selectedFrame;
                             });
                         } catch (error) {
                             console.log('Could not use fresh PNG frame:', error);
